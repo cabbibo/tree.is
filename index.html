@@ -43,6 +43,7 @@ body {
 
 }
 
+
 #navFluid{
 
     height:100px;
@@ -74,11 +75,13 @@ body {
 .nav li a:hover{
   color:#000;
   background:rgba(0,0,0,.01);
+  border-bottom: 1px solid #000;
 }
 
 .nav li a:focus{
   background:rgba(0,0,0,.01);
   color:#666;
+  border-bottom: 1px solid #000;
 }
 
 .jumbotron{
@@ -94,6 +97,12 @@ body {
 .navbar a{
   color:#fff;
 }
+
+#mainLink{
+  padding-left:100px;
+  padding-right:100px;
+}
+
 
 canvas{
  
@@ -114,7 +123,7 @@ canvas{
         <div class="container-fluid" id="navFluid">
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li><a href="pages/home.html" onclick="linkClick">Tree Computers Inc.</a></li>
+              <li><a href="pages/home.html" id="mainLink" onclick="linkClick"> Tree.is</a></li>
               <li><a href="pages/about.html" onclick="linkClick">About</a></li>
               <li><a href="pages/projects.html" onclick="linkClick">Projects</a></li>
               <li><a href="pages/labs.html" onclick="linkClick">Labs</a></li>
