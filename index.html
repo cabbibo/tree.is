@@ -1,0 +1,626 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="bootstrap-3.3.5-dist/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="main.css">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+  <style>
+body {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+}
+
+.navbar {
+  height:100px;
+  position: fixed;
+  top:-2px;
+  width:100%;
+  left:0px;
+  font-size: 20px;
+  margin-bottom: 100px;
+  z-index: 99;
+  box-shadow:  0px 0px 20px rgba(0,0,0,0.1);
+ // border-bottom: 3px solid #eee;
+
+}
+
+#navFluid{
+
+    height:100px;
+    //box-shadow: inset 0px 0px 20px rgba(0,0,0,0.1);
+    //padding-left: 100px;
+    padding:0px;
+   // margin:0px;
+
+
+
+}
+
+.navbar-collapse{
+  height:100px;
+}
+
+.navbar-nav a{
+  height:100px;
+  //background:#fff;
+  vertical-align: 50%;
+}
+
+
+.nav li a{
+  color:#000;
+ // background:rgba(0,0,0,.01);
+}
+
+.nav li a:hover{
+  color:#000;
+  background:rgba(0,0,0,.01);
+}
+
+.nav li a:focus{
+  background:rgba(0,0,0,.01);
+  color:#666;
+}
+
+.jumbotron{
+  padding-top: 100px;
+}
+.navbar div{
+  height:100px;
+}
+.navbar{
+  background: none;
+}
+
+.navbar a{
+  color:#fff;
+}
+
+canvas{
+ 
+ position: absolute;
+ top:0px;
+ z-index: -99;
+
+}
+
+  </style>
+  </head>
+  <body>
+    <div class="container">
+
+      <!-- Static navbar -->
+      <nav class="navbar" id="navBar3D">
+
+        <div class="container-fluid" id="navFluid">
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="pages/home.html" onclick="linkClick">Tree Computers Inc.</a></li>
+              <li><a href="pages/about.html" onclick="linkClick">About</a></li>
+              <li><a href="pages/projects.html" onclick="linkClick">Projects</a></li>
+              <li><a href="pages/labs.html" onclick="linkClick">Labs</a></li>
+              <li><a href="pages/contact.html" onclick="linkClick">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
+
+      <!-- Main component for a primary marketing message or call to action -->
+      <div class="jumbotron" id="main_page">
+      </div>
+
+    </div> <!-- /container -->
+
+
+    <script src="lib/jquery.min.js"></script>
+    <script src="bootstrap-3.3.5-dist/js/bootstrap.js"></script>
+
+    <script>
+
+      $(document).ready(function(){
+        $("ul.nav li a").click(function(e){ 
+            linkClick(e)
+            console.log('ss')
+            e.preventDefault();
+            var url = $(this).attr('href'); //get the link you want to load data from
+            console.log( url )
+            $.ajax({ 
+             type: 'GET',
+             url: url,
+             success: function(data) { 
+              //console.log( data )
+                $("#main_page").html(data); 
+            } 
+           }); 
+         });
+      });
+
+      $(document).ready(function(){
+        $("nav").mousemove(function(e){ 
+          mouseMove(e)
+        });
+      });
+
+      $(document).ready(function(){
+        var ys = $("ul.nav li a");
+
+
+
+        for( var i = 0; i < ys.length; i++){
+          var r = ys[i].getBoundingClientRect();
+          uniforms.linkPos.value[i] =  r.left + (r.right-r.left)/2; 
+          console.log( uniforms.linkPos.value[i])
+        }
+
+        console.log('sww')
+        $(ys[0]).trigger("click");
+      });
+
+      // Start by loading home page
+      $(document).ready(function(){
+        var url = "pages/home.html" //get the link you want to load data from
+        console.log( url );
+        $.ajax({ 
+         type: 'GET',
+         url: url,
+         success: function(data) { 
+          //console.log( data )
+            $("#main_page").html(data); 
+         } 
+        }); 
+      });
+
+    </script>
+
+    <script src="lib/three.min.js"></script>
+
+    <script src="lib/Detector.js"></script>
+    <script src="lib/stats.min.js"></script>
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+
+      void main() {
+
+        gl_Position = vec4( position, 1.0 );
+
+      }
+
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+precision highp float;
+      uniform vec2 resolution;
+      uniform float selectedPos;
+      uniform float mousePos;
+      uniform float time;
+      uniform float linkPos[5];
+
+
+
+      // The MINIMIZED version of https://www.shadertoy.com/view/Xl2XWt
+
+
+      const float MAX_TRACE_DISTANCE = 10.0;           // max trace distance
+      const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
+      const int NUM_OF_TRACE_STEPS = 60;
+
+      vec3 selectedPosition;
+      vec3 mousePosition;
+
+      vec3 leftPosition;
+      vec3 rightPosition;
+
+      vec3 linkPositions[5];
+
+
+      //----
+      // Camera Stuffs
+      //----
+      mat3 calcLookAtMatrix( in vec3 ro, in vec3 ta, in float roll )
+      {
+          vec3 ww = normalize( ta - ro );
+          vec3 uu = normalize( cross( ww , vec3(sin(roll) , cos(roll) ,0.0) ) );
+          vec3 vv = normalize( cross( uu , ww ));
+          return mat3( uu, vv, ww );
+      }
+
+      // checks to see which intersection is closer
+      // and makes the y of the vec2 be the proper id
+      vec2 opU( vec2 d1, vec2 d2 ){
+          
+        return (d1.x<d2.x) ? d1 : d2;
+          
+      }
+
+      float sdBox( vec3 p, vec3 b )
+      {
+        vec3 d = abs(p) - b;
+        return min(max(d.x,max(d.y,d.z)),0.0) +
+               length(max(d,0.0));
+      }
+
+      float sdSphere( vec3 p, float s )
+      {
+        return length(p)-s;
+      }
+
+      float sdPlane( vec3 p, vec4 n )
+      {
+        // n must be normalized
+        return dot(p,n.xyz) + n.w;
+      }
+
+      vec2 smoothU( vec2 d1, vec2 d2, float k)
+{
+    float a = d1.x;
+    float b = d2.x;
+    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
+    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
+}
+
+
+      //--------------------------------
+      // Modelling 
+      //--------------------------------
+      vec2 map( vec3 pos ){  
+
+          vec2 res = vec2( 10000. , 1.);
+
+          //res = smoothU( res , vec2( sdSphere( pos - leftPosition , .02 ) , 1.) ,.04);
+          //res = smoothU( res , vec2( sdSphere( pos - rightPosition , .02 ) , 1.),.04 );
+          res = smoothU( res , vec2( sdSphere( pos - selectedPosition, .02 ), 2.), .04);
+          res = smoothU( res , vec2( sdSphere( pos - mousePosition, .02 ), 2.), .04);
+
+          for( int i = 0; i < 5; i++){
+
+            res = smoothU( res,vec2( sdSphere( pos - linkPositions[i] - vec3( 0., .04, 0.), .04 ), 1.), .02 );
+
+          }
+          
+
+          /*vec2 res = vec2( sdSphere( pos - vec3( .3 , .3 , -0.4 ) - selectedPosition , 1.1 ) , 1. ); 
+          res = opU( res , vec2( sdBox( pos- vec3( -.8 , -.4 , 0.2 ), vec3( .4 , .3 , .2 )) , 2. ));
+          */
+
+
+          return res;
+          
+      }
+
+
+
+      vec2 calcIntersection( in vec3 ro, in vec3 rd ){
+
+          
+          float h =  INTERSECTION_PRECISION*2.0;
+          float t = 0.0;
+          float res = -1.0;
+          float id = -1.;
+          
+          for( int i=0; i< NUM_OF_TRACE_STEPS ; i++ ){
+              
+              if( h < INTERSECTION_PRECISION || t > MAX_TRACE_DISTANCE ) break;
+              vec2 m = map( ro+rd*t );
+              h = m.x;
+              t += h;
+              id = m.y;
+              
+          }
+
+          if( t < MAX_TRACE_DISTANCE ) res = t;
+          if( t > MAX_TRACE_DISTANCE ) id =-1.0;
+          
+          return vec2( res , id );
+          
+      }
+
+
+
+      // Calculates the normal by taking a very small distance,
+      // remapping the function, and getting normal for that
+      vec3 calcNormal( in vec3 pos ){
+          
+        vec3 eps = vec3( 0.001, 0.0, 0.0 );
+        vec3 nor = vec3(
+            map(pos+eps.xyy).x - map(pos-eps.xyy).x,
+            map(pos+eps.yxy).x - map(pos-eps.yxy).x,
+            map(pos+eps.yyx).x - map(pos-eps.yyx).x );
+        return normalize(nor);
+      }
+
+
+float calcAO( in vec3 pos, in vec3 nor )
+{
+  float occ = 0.0;
+    float sca = 1.0;
+    for( int i=0; i<5; i++ )
+    {
+        float hr = 0.01 + 0.612*float(i)/4.0;
+        vec3 aopos =  nor * hr + pos;
+        float dd = map( aopos ).x;
+        occ += -(dd-hr)*sca;
+        sca *= 0.5;
+    }
+    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
+}
+
+vec3 hsv(float h, float s, float v){
+        return mix( vec3( 1.0 ), clamp(( abs( fract(h + vec3( 3.0, 2.0, 1.0 ) / 3.0 )
+                   * 6.0 - 3.0 ) - 1.0 ), 0.0, 1.0 ), s ) * v;
+      }
+
+
+
+
+      float distanceToPlane( vec3 n , vec3 p1 , vec3 p2 ){
+  
+        vec3 dif = p2 - p1;
+
+        float d = dot( n , dif );
+
+        return d;
+
+      }
+
+
+      float planeIntersect( vec3 rayDir, vec3 rayOrigin){
+        vec3 planeNormal = vec3(0.0,0.0,-1.0);
+        vec3 planePoint = vec3(0.0,0.0,0.0);
+        // rayDir= normalize(rayDir);
+       
+        if(dot(planeNormal, rayDir ) > 0.){
+          return -dot(planeNormal, (rayOrigin - planePoint)) / dot(planeNormal,rayDir);
+        }else{
+          return -1.; 
+        }
+      }
+
+
+      vec3 render( vec2 res , vec3 ro , vec3 rd ){
+         
+
+        vec3 color = vec3( 1. );
+          
+        vec3 lightPos = vec3( 1. , 4. , 3. );
+          
+          
+        if( res.y > -.5 ){
+            
+          vec3 pos = ro + rd * res.x;
+          vec3 norm = calcNormal( pos );
+          float ao = calcAO( pos , norm );
+            
+          vec3 lightDir = normalize( lightPos - pos );
+          
+          float match = max( 0. , dot( lightDir , norm ));
+ 
+              
+          color = vec3( ao);
+
+          if( res.y > 1. ){
+            color *= mix( color , ao * hsv( res.y / 2. , 1. , 1.) , max( 0., res.y - 1.) );
+          }
+
+              
+        }
+         
+        return color;
+          
+          
+      }
+
+      void main()
+      {
+          
+          vec2 p = (-resolution.xy + 2.0 * gl_FragCoord.xy)/resolution.x;
+
+          vec2 selectP = (-resolution.xy + 4.0 * vec2( selectedPos , resolution.y / 4. ))/resolution.x;
+          vec2 mouseP = (-resolution.xy + 4.0 * vec2( mousePos , resolution.y / 4. ))/resolution.x;
+
+          vec2 leftP =  (-resolution.xy + 2.0 * vec2( 0., resolution.y / 2.))/resolution.x;         
+          vec2 rightP =  (-resolution.xy + 2.0 * vec2( resolution.x, resolution.y / 2.))/resolution.x;         
+
+          vec2 linkP[5];
+          for( int i = 0; i < 5; i++){
+            linkP[i] =  (-resolution.xy + 4.0 * vec2( linkPos[i] , resolution.y / 4. ))/resolution.x;
+          }
+
+
+          vec3 ro = vec3( 0., 0.,2.);
+          vec3 ta = vec3( 0. , 0. , 0. );
+          
+          // camera matrix
+          mat3 camMat = calcLookAtMatrix( ro, ta, 0.0 );  // 0.0 is the camera roll
+          
+          // create view ray
+          vec3 rd = normalize( camMat * vec3(p.xy,4.0) ); // 2.0 is the lens length
+
+          vec3 posRay   = normalize( camMat * vec3( selectP , 4. ));
+          vec3 mouseRay   = normalize( camMat * vec3(mouseP , 4. ));
+          vec3 leftRay  = normalize( camMat * vec3( leftP   , 4. ));
+          vec3 rightRay = normalize( camMat * vec3( rightP  , 4. ));
+
+
+          float planeI = planeIntersect( posRay , ro );
+
+          selectedPosition = posRay * planeI;
+          selectedPosition.z = 0.;
+
+
+          planeI = planeIntersect( mouseRay , ro );
+
+          mousePosition = mouseRay * planeI;
+          mousePosition.z = 0.;
+
+          leftPosition = leftRay * 2.1;
+          leftPosition.z = 0.;
+
+          rightPosition = rightRay * 2.1;
+          rightPosition.z = 0.;
+
+
+
+          for( int i = 0; i < 5; i++){
+
+            vec3 ray = normalize( camMat * vec3( linkP[i] , 4. ));
+            planeI = planeIntersect( ray , ro );
+
+            linkPositions[i] = ray * planeI;
+            linkPositions[i].z = 0.;
+           
+          }
+
+          
+          vec2 res = calcIntersection( ro , rd  );
+
+        
+          vec3 color = render( res , ro , rd );
+          
+          gl_FragColor= vec4(color,1.0);
+
+          
+          
+      }
+
+
+    </script>
+
+    <script>
+
+      if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+      var container, stats;
+
+      var camera, scene, renderer;
+      var targetMousePosition=-1000, actualMousePosition=-1000;
+      var targetSelectedPosition=-100, actualSelectedPosition=-100;
+
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+
+        container = document.getElementById( 'navBar3D' );
+
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
+
+        uniforms = {
+          time: { type: "f", value: 1.0 },
+          resolution: { type: "v2", value: new THREE.Vector2() },
+          selectedPos: {type:"f" ,value:0},
+          mousePos: {type:"f" ,value:0},
+          linkPos: {type:"1fv" ,value:[0,0,0,0,0]}
+        };
+
+        var material = new THREE.ShaderMaterial( {
+
+          uniforms: uniforms,
+          vertexShader: document.getElementById( 'vertexShader' ).textContent,
+          fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+
+        } );
+
+        var mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        container.appendChild( renderer.domElement );
+
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.top = '0px';
+       // container.appendChild( stats.domElement );
+
+        onWindowResize();
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+      }
+
+      function onWindowResize( event ) {
+
+        var elem = document.getElementById("navBar3D");
+
+        console.log( elem );
+
+
+        renderer.setSize( elem.clientWidth, elem.clientHeight );
+
+        uniforms.resolution.value.x = renderer.domElement.width;
+        uniforms.resolution.value.y = renderer.domElement.height;
+
+      }
+
+      //
+
+      function animate() {
+
+        requestAnimationFrame( animate );
+
+        render();
+        stats.update();
+
+        actualMousePosition    = (targetMousePosition - actualMousePosition) / 10. + actualMousePosition
+        actualSelectedPosition = (targetSelectedPosition - actualSelectedPosition) / 10.+ actualSelectedPosition
+
+        uniforms.mousePos.value = actualMousePosition;
+        uniforms.selectedPos.value = actualSelectedPosition;
+
+      }
+
+      function render() {
+
+        uniforms.time.value += 0.05;
+
+        renderer.render( scene, camera );
+
+      }
+
+      function linkClick(e){
+        console.log('sss')
+        console.log( e )
+
+        if( !e.clientX ){
+          targetSelectedPosition = e.target.clientWidth/2. + 15.;
+        }else{
+          targetSelectedPosition = e.clientX - e.offsetX + e.target.clientWidth/2.;
+        }
+
+      }
+
+      function mouseMove(e){
+        console.log('ss')
+        targetMousePosition = e.clientX;
+      }
+
+    </script>
+  </body>
+</html>
+</html>
